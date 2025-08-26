@@ -16,6 +16,7 @@ interface ProductTableProps {
 
 export function ProductTable({ onShowToast }: ProductTableProps) {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const { data: products = [], isLoading } = useQuery<Product[]>({
     queryKey: ["/api/products"],
@@ -154,12 +155,15 @@ export function ProductTable({ onShowToast }: ProductTableProps) {
                   {product.stockQuantity}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                  <Dialog>
+                  <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                     <DialogTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setEditingProduct(product)}
+                        onClick={() => {
+                          setEditingProduct(product);
+                          setIsEditDialogOpen(true);
+                        }}
                         data-testid={`button-edit-product-${product.id}`}
                       >
                         <Edit className="h-4 w-4 mr-1" />
@@ -173,7 +177,10 @@ export function ProductTable({ onShowToast }: ProductTableProps) {
                       <ProductForm 
                         product={editingProduct}
                         onShowToast={onShowToast}
-                        onSuccess={() => setEditingProduct(null)}
+                        onSuccess={() => {
+                          setEditingProduct(null);
+                          setIsEditDialogOpen(false);
+                        }}
                       />
                     </DialogContent>
                   </Dialog>
