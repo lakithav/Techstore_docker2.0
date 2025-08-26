@@ -1,0 +1,111 @@
+Product Requirements Document: TechStore E-commerce Website
+1. Introduction & Overview
+This document outlines the requirements for a new full-stack e-commerce website for TechStore, a trusted gadget and electronics store. The goal is to create a functional, single-page application that allows users to browse and purchase tech products. The site will be built with a MERN stack, offering a modern and dynamic user experience. A key focus is to implement robust CRUD (Create, Read, Update, Delete) functionality to manage the product inventory effectively. User authentication is not a required feature for this initial version.
+
+2. Goals & Objectives
+The primary objective of this project is to create a fully functional, end-to-end e-commerce platform for tech products. Specific goals include:
+
+Provide a seamless user experience for browsing gadgets, viewing technical details, and adding items to a cart.
+
+Establish a robust backend capable of managing tech product data via a MongoDB database.
+
+Enable full CRUD functionality for the product catalog, allowing for easy inventory management of electronics and accessories.
+
+Demonstrate proficiency with the MERN stack (MongoDB, Express.js, React.js, Node.js) and modern front-end styling.
+
+3. Target Audience
+The target audience for this website is two-fold:
+
+End Users (Customers): Individuals who are tech enthusiasts, students, or professionals looking to purchase gadgets, laptops, phones, and accessories. They expect a clean, intuitive interface that is easy to navigate on both desktop and mobile devices.
+
+Store Administrators: The individual or team responsible for managing the tech product inventory. They require a simple interface to add, edit, and delete products from the catalog.
+
+4. Key Features & Functionality
+4.1. Product Catalog (Read)
+This feature allows end users to view the available products.
+
+Product Listing Page: Displays all products in a grid or list format. Each product item will include:
+
+Product image
+
+Product name (e.g., "iPhone 15 Pro", "AirPods Pro 2")
+
+Price
+
+A brief description or key feature summary
+
+Product Detail Page: When a user clicks on a product, they are taken to a dedicated page with more information, including:
+
+High-resolution product images
+
+Detailed technical specifications (e.g., processor, RAM, storage, display type)
+
+Full price
+
+"Add to Cart" button
+
+4.2. Product Management (CRUD)
+This set of features is for the store administrator to manage inventory. A simple administrative interface will be implemented.
+
+Create: The administrator can add a new tech product to the catalog by providing the following information via a form:
+
+Product Name
+
+Detailed Description & Specifications
+
+Price
+
+Image URL
+
+Stock Quantity
+
+Read: The administrative interface will display a list of all current products, making them easy to review.
+
+Update: The administrator can edit the details of an existing product. Clicking on a product in the admin view will pre-fill a form with its current data, which can then be modified and saved.
+
+Delete: The administrator can permanently remove a product from the catalog.
+
+4.3. Shopping Cart
+While user authentication is not required, a functional shopping cart will be included to manage the user's selected items.
+
+Add to Cart: A button on the Product Detail Page adds the selected product to a temporary, session-based cart.
+
+View Cart: A dedicated page or modal will show the items currently in the cart, along with their quantity and a running total.
+
+Checkout: A simple "Checkout" button will be available in the cart. This will be a non-functional placeholder for future development, as a full payment system is out of scope.
+
+5. Technical Requirements
+Frontend: The client-side application will be built using React.js. The application will follow a component-based architecture for reusability and maintainability.
+
+Styling: The design and layout will be implemented using either Bootstrap or Tailwind CSS to ensure a responsive, mobile-first design.
+
+Backend: The server-side will be built with the MERN stack, specifically using Node.js and the Express.js framework to handle API endpoints.
+
+Database: MongoDB will be used as the database to store product data, taking advantage of its flexible NoSQL schema.
+
+API: A RESTful API will be created to connect the frontend and backend, handling all CRUD operations for the product data.
+
+6. Scope & Exclusions
+In Scope:
+
+Full-stack development using the MERN stack.
+
+All CRUD functionality for the product catalog.
+
+A basic, session-based shopping cart.
+
+Responsive front-end design.
+
+Out of Scope:
+
+User registration and login (authentication).
+
+Any form of payment processing or e-commerce transactions.
+
+Order history or user-specific data persistence.
+
+Complex search and filtering functionality.
+
+Reviews and ratings.
+
+Full product inventory management beyond basic stock quantity tracking.
