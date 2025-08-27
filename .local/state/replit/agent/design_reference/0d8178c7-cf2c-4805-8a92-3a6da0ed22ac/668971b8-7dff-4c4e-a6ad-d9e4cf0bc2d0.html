@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStore - Premium Electronics & Gadgets</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                }
+            },
+            fontFamily: {
+                sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+            }
+        },
+    };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --background: hsl(210 40% 98%);
+            --foreground: hsl(222.2 84% 4.9%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(222.2 84% 4.9%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(222.2 84% 4.9%);
+            --primary: hsl(217.2 91.2% 59.8%);
+            --primary-foreground: hsl(210 40% 98%);
+            --secondary: hsl(210 40% 96%);
+            --secondary-foreground: hsl(222.2 47.4% 11.2%);
+            --muted: hsl(210 40% 96%);
+            --muted-foreground: hsl(215.4 16.3% 46.9%);
+            --accent: hsl(210 40% 96%);
+            --accent-foreground: hsl(222.2 47.4% 11.2%);
+            --destructive: hsl(0 84.2% 60.2%);
+            --destructive-foreground: hsl(210 40% 98%);
+            --border: hsl(214.3 31.8% 91.4%);
+            --input: hsl(214.3 31.8% 91.4%);
+            --ring: hsl(217.2 91.2% 59.8%);
+            --radius: 0.5rem;
+        }
+        
+        .cart-drawer {
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .cart-drawer.open {
+            transform: translateX(0);
+        }
+        
+        .product-card {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground font-sans">
+    <!-- @COMPONENT: Header [navigation, cart icon, admin toggle] -->
+    <header class="bg-card shadow-sm border-b border-border sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-microchip text-primary text-2xl"></i>
+                    <h1 class="text-xl font-bold text-foreground">TechStore</h1>
+                </div>
+                
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="#" class="text-foreground hover:text-primary transition-colors" data-section="catalog">Products</a>
+                    <a href="#" class="text-foreground hover:text-primary transition-colors" data-section="about">About</a>
+                    <a href="#" class="text-foreground hover:text-primary transition-colors" data-section="contact">Contact</a>
+                </nav>
+                
+                <!-- Actions -->
+                <div class="flex items-center space-x-4">
+                    <button id="adminToggle" class="text-sm bg-secondary text-secondary-foreground px-3 py-1 rounded-md hover:bg-accent transition-colors">
+                        Admin View
+                    </button>
+                    <button id="cartToggle" class="relative p-2 text-foreground hover:text-primary transition-colors">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                        <span id="cartCount" class="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                    </button>
+                    <button class="md:hidden p-2 text-foreground hover:text-primary">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <!-- Main Content Container -->
+    <main class="min-h-screen">
+        <!-- @COMPONENT: ProductCatalog [product grid, filtering] -->
+        <section id="catalogSection" class="py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Header -->
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-foreground mb-2">Featured Products</h2>
+                    <p class="text-muted-foreground">Discover the latest in technology and electronics</p>
+                </div>
+                
+                <!-- Filters -->
+                <div class="flex flex-wrap gap-4 mb-8">
+                    <button class="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+                        All Products
+                    </button>
+                    <button class="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-accent transition-colors">
+                        Laptops
+                    </button>
+                    <button class="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-accent transition-colors">
+                        Smartphones
+                    </button>
+                    <button class="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-accent transition-colors">
+                        Accessories
+                    </button>
+                </div>
+                
+                <!-- Product Grid -->
+                <!-- @MAP: products.map(product => ( -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="productGrid">
+                    <!-- Product Card 1 -->
+                    <div class="product-card bg-card rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md" data-mock="true">
+                        <div class="aspect-square relative overflow-hidden">
+                            <!-- High-end gaming laptop with RGB keyboard and sleek black design -->
+                            <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400" 
+                                 alt="Gaming Laptop" 
+                                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
+                                 data-mock-image="true" />
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-foreground mb-1" data-bind="product.name">Gaming Laptop Pro</h3>
+                            <p class="text-sm text-muted-foreground mb-2" data-bind="product.description">Intel i9, RTX 4080, 32GB RAM</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-bold text-foreground" data-bind="product.price">$2,499</span>
+                                <button class="add-to-cart bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90 transition-colors text-sm" 
+                                        data-product-id="1" data-event="click:addToCart">
+                                    Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Product Card 2 -->
+                    <div class="product-card bg-card rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md" data-mock="true">
+                        <div class="aspect-square relative overflow-hidden">
+                            <!-- Latest iPhone in midnight blue color showing sleek camera system -->
+                            <img src="https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400" 
+                                 alt="iPhone 15 Pro" 
+                                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
+                                 data-mock-image="true" />
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-foreground mb-1" data-bind="product.name">iPhone 15 Pro</h3>
+                            <p class="text-sm text-muted-foreground mb-2" data-bind="product.description">6.1" A17 Pro chip, 128GB</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-bold text-foreground" data-bind="product.price">$999</span>
+                                <button class="add-to-cart bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90 transition-colors text-sm" 
+                                        data-product-id="2" data-event="click:addToCart">
+                                    Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Product Card 3 -->
+                    <div class="product-card bg-card rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md" data-mock="true">
+                        <div class="aspect-square relative overflow-hidden">
+                            <!-- Premium wireless headphones with modern design and metallic finish -->
+                            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400" 
+                                 alt="Wireless Headphones" 
+                                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
+                                 data-mock-image="true" />
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-foreground mb-1" data-bind="product.name">AirPods Pro 2</h3>
+                            <p class="text-sm text-muted-foreground mb-2" data-bind="product.description">Active Noise Cancellation</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-bold text-foreground" data-bind="product.price">$249</span>
+                                <button class="add-to-cart bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90 transition-colors text-sm" 
+                                        data-product-id="3" data-event="click:addToCart">
+                                    Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Product Card 4 -->
+                    <div class="product-card bg-card rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md" data-mock="true">
+                        <div class="aspect-square relative overflow-hidden">
+                            <!-- Ultra-wide curved monitor display showing vibrant colors -->
+                            <img src="https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400" 
+                                 alt="4K Monitor" 
+                                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
+                                 data-mock-image="true" />
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-foreground mb-1" data-bind="product.name">4K Monitor 27"</h3>
+                            <p class="text-sm text-muted-foreground mb-2" data-bind="product.description">IPS, 144Hz, HDR support</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-bold text-foreground" data-bind="product.price">$549</span>
+                                <button class="add-to-cart bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90 transition-colors text-sm" 
+                                        data-product-id="4" data-event="click:addToCart">
+                                    Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Product Card 5 -->
+                    <div class="product-card bg-card rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md" data-mock="true">
+                        <div class="aspect-square relative overflow-hidden">
+                            <!-- Sleek mechanical keyboard with RGB backlighting -->
+                            <img src="https://images.unsplash.com/photo-1541140532154-b024d705b90a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400" 
+                                 alt="Mechanical Keyboard" 
+                                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
+                                 data-mock-image="true" />
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-foreground mb-1" data-bind="product.name">Mechanical Keyboard</h3>
+                            <p class="text-sm text-muted-foreground mb-2" data-bind="product.description">RGB, Cherry MX switches</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-bold text-foreground" data-bind="product.price">$129</span>
+                                <button class="add-to-cart bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90 transition-colors text-sm" 
+                                        data-product-id="5" data-event="click:addToCart">
+                                    Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Product Card 6 -->
+                    <div class="product-card bg-card rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md" data-mock="true">
+                        <div class="aspect-square relative overflow-hidden">
+                            <!-- Compact wireless mouse with ergonomic design -->
+                            <img src="https://pixabay.com/get/gc8d86bd126bb30d1339510d73856bec263c385759f6c449e71d9657383609e317a4e46c27ac061f312358ccb75700d1410c2d0da7ee011ab0efb2462a556c6e9_1280.jpg" 
+                                 alt="Wireless Mouse" 
+                                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
+                                 data-mock-image="true" />
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-foreground mb-1" data-bind="product.name">Wireless Mouse</h3>
+                            <p class="text-sm text-muted-foreground mb-2" data-bind="product.description">Ergonomic, 12000 DPI</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-bold text-foreground" data-bind="product.price">$79</span>
+                                <button class="add-to-cart bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90 transition-colors text-sm" 
+                                        data-product-id="6" data-event="click:addToCart">
+                                    Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Product Card 7 -->
+                    <div class="product-card bg-card rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md" data-mock="true">
+                        <div class="aspect-square relative overflow-hidden">
+                            <!-- Modern tablet device showing creative apps interface -->
+                            <img src="https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400" 
+                                 alt="iPad Pro" 
+                                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
+                                 data-mock-image="true" />
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-foreground mb-1" data-bind="product.name">iPad Pro 12.9"</h3>
+                            <p class="text-sm text-muted-foreground mb-2" data-bind="product.description">M2 chip, 256GB, WiFi</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-bold text-foreground" data-bind="product.price">$1,099</span>
+                                <button class="add-to-cart bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90 transition-colors text-sm" 
+                                        data-product-id="7" data-event="click:addToCart">
+                                    Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Product Card 8 -->
+                    <div class="product-card bg-card rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md" data-mock="true">
+                        <div class="aspect-square relative overflow-hidden">
+                            <!-- High-quality webcam with professional lighting setup -->
+                            <img src="https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400" 
+                                 alt="4K Webcam" 
+                                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
+                                 data-mock-image="true" />
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-foreground mb-1" data-bind="product.name">4K Webcam</h3>
+                            <p class="text-sm text-muted-foreground mb-2" data-bind="product.description">Auto-focus, Built-in mic</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-bold text-foreground" data-bind="product.price">$199</span>
+                                <button class="add-to-cart bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90 transition-colors text-sm" 
+                                        data-product-id="8" data-event="click:addToCart">
+                                    Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+        </section>
+        <!-- @END_COMPONENT: ProductCatalog -->
+
+        <!-- @COMPONENT: AdminInterface [CRUD operations, product management] -->
+        <section id="adminSection" class="py-8 hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Header -->
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-foreground mb-2">Admin Dashboard</h2>
+                    <p class="text-muted-foreground">Manage your product inventory</p>
+                </div>
+
+                <!-- Admin Tabs -->
+                <div class="mb-8">
+                    <div class="border-b border-border">
+                        <nav class="-mb-px flex space-x-8">
+                            <button class="admin-tab active py-2 px-1 border-b-2 border-primary text-primary font-medium text-sm" data-tab="products">
+                                Products
+                            </button>
+                            <button class="admin-tab py-2 px-1 border-b-2 border-transparent text-muted-foreground hover:text-foreground font-medium text-sm" data-tab="add-product">
+                                Add Product
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Products Management Tab -->
+                <div id="products-tab" class="admin-tab-content">
+                    <div class="bg-card rounded-lg shadow-sm border border-border">
+                        <div class="px-6 py-4 border-b border-border">
+                            <h3 class="text-lg font-semibold text-foreground">Product Inventory</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-muted">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Product</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Price</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Stock</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-border">
+                                    <!-- @MAP: products.map(product => ( -->
+                                    <tr data-mock="true">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="h-10 w-10 flex-shrink-0">
+                                                    <!-- Gaming laptop thumbnail for admin table -->
+                                                    <img class="h-10 w-10 rounded object-cover" src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=40&h=40" alt="Gaming Laptop" data-mock-image="true">
+                                                </div>
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-foreground" data-bind="product.name">Gaming Laptop Pro</div>
+                                                    <div class="text-sm text-muted-foreground" data-bind="product.description">Intel i9, RTX 4080, 32GB RAM</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-foreground" data-bind="product.price">$2,499</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-foreground" data-bind="product.stock">25</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                            <button class="text-primary hover:text-primary/80" data-event="click:editProduct" data-implementation="Open edit modal with pre-filled form">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button class="text-destructive hover:text-destructive/80" data-event="click:deleteProduct" data-implementation="Show confirmation dialog before deletion">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr data-mock="true">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="h-10 w-10 flex-shrink-0">
+                                                    <!-- iPhone thumbnail for admin table -->
+                                                    <img class="h-10 w-10 rounded object-cover" src="https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?ixlib=rb-4.0.3&auto=format&fit=crop&w=40&h=40" alt="iPhone 15 Pro" data-mock-image="true">
+                                                </div>
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-foreground" data-bind="product.name">iPhone 15 Pro</div>
+                                                    <div class="text-sm text-muted-foreground" data-bind="product.description">6.1" A17 Pro chip, 128GB</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-foreground" data-bind="product.price">$999</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-foreground" data-bind="product.stock">50</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                            <button class="text-primary hover:text-primary/80" data-event="click:editProduct">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button class="text-destructive hover:text-destructive/80" data-event="click:deleteProduct">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <!-- @END_MAP )) -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Product Tab -->
+                <div id="add-product-tab" class="admin-tab-content hidden">
+                    <div class="bg-card rounded-lg shadow-sm border border-border p-6">
+                        <h3 class="text-lg font-semibold text-foreground mb-6">Add New Product</h3>
+                        <form class="space-y-6" data-implementation="Handle form submission with validation">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-foreground mb-2">Product Name</label>
+                                    <input type="text" class="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" placeholder="Enter product name" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-foreground mb-2">Price ($)</label>
+                                    <input type="number" step="0.01" class="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" placeholder="0.00" required>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-foreground mb-2">Description</label>
+                                <textarea rows="3" class="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" placeholder="Enter product description"></textarea>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-foreground mb-2">Image URL</label>
+                                    <input type="url" class="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" placeholder="https://example.com/image.jpg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-foreground mb-2">Stock Quantity</label>
+                                    <input type="number" class="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" placeholder="0" required>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-foreground mb-2">Technical Specifications</label>
+                                <textarea rows="4" class="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" placeholder="Enter detailed specifications"></textarea>
+                            </div>
+                            
+                            <div class="flex gap-4">
+                                <button type="submit" class="bg-primary text-primary-foreground px-6 py-2 rounded-md hover:bg-primary/90 transition-colors">
+                                    Add Product
+                                </button>
+                                <button type="reset" class="bg-secondary text-secondary-foreground px-6 py-2 rounded-md hover:bg-accent transition-colors">
+                                    Clear Form
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: AdminInterface -->
+    </main>
+
+    <!-- @COMPONENT: CartDrawer [cart items, quantity controls, checkout] -->
+    <div id="cartDrawer" class="cart-drawer fixed inset-y-0 right-0 z-50 w-full max-w-md bg-card shadow-xl border-l border-border">
+        <div class="flex flex-col h-full">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-4 border-b border-border">
+                <h2 class="text-lg font-semibold text-foreground">Shopping Cart</h2>
+                <button id="closeCart" class="p-2 text-muted-foreground hover:text-foreground">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Cart Items -->
+            <div class="flex-1 overflow-y-auto p-4">
+                <div id="cartItems" class="space-y-4">
+                    <!-- @STATE: cartItems:array = [] -->
+                    <!-- Cart items will be dynamically added here -->
+                    <div class="text-center text-muted-foreground py-8" id="emptyCart">
+                        <i class="fas fa-shopping-cart text-4xl mb-2"></i>
+                        <p>Your cart is empty</p>
+                    </div>
+                    <!-- @MAP: cartItems.map(item => ( -->
+                    <!-- Example cart item (hidden by default) -->
+                    <div class="cart-item hidden border border-border rounded-lg p-4" data-mock="true">
+                        <div class="flex items-center space-x-4">
+                            <!-- Gaming laptop cart item image -->
+                            <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=60&h=60" 
+                                 alt="Product" 
+                                 class="w-12 h-12 object-cover rounded" 
+                                 data-mock-image="true" />
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-sm font-medium text-foreground truncate" data-bind="item.name">Gaming Laptop Pro</h4>
+                                <p class="text-sm text-muted-foreground" data-bind="item.price">$2,499</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button class="w-6 h-6 rounded bg-secondary text-secondary-foreground flex items-center justify-center hover:bg-accent" data-event="click:decrementQuantity">
+                                    <i class="fas fa-minus text-xs"></i>
+                                </button>
+                                <span class="w-8 text-center text-sm" data-bind="item.quantity">1</span>
+                                <button class="w-6 h-6 rounded bg-secondary text-secondary-foreground flex items-center justify-center hover:bg-accent" data-event="click:incrementQuantity">
+                                    <i class="fas fa-plus text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="border-t border-border p-4 space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-lg font-semibold text-foreground">Total:</span>
+                    <span class="text-lg font-bold text-foreground" id="cartTotal" data-bind="cart.total">$0.00</span>
+                </div>
+                <button class="w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50" 
+                        id="checkoutBtn" 
+                        data-event="click:checkout" 
+                        data-implementation="Placeholder checkout - show success message">
+                    Checkout
+                </button>
+                <p class="text-xs text-muted-foreground text-center">Checkout is a placeholder for demo purposes</p>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: CartDrawer -->
+
+    <!-- @COMPONENT: ProductDetailModal [detailed view, specifications, add to cart] -->
+    <div id="productModal" class="fixed inset-0 bg-black/50 modal-backdrop hidden z-50 flex items-center justify-center p-4" data-event="click:closeModal">
+        <div class="bg-card rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" data-event="click:stopPropagation">
+            <div class="p-6">
+                <!-- Close Button -->
+                <div class="flex justify-end mb-4">
+                    <button class="text-muted-foreground hover:text-foreground" id="closeModal">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Product Details -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Product Image -->
+                    <div class="aspect-square">
+                        <!-- High-resolution gaming laptop product image -->
+                        <img id="modalProductImage" 
+                             src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=600" 
+                             alt="Product" 
+                             class="w-full h-full object-cover rounded-lg" 
+                             data-mock-image="true" />
+                    </div>
+                    
+                    <!-- Product Info -->
+                    <div class="space-y-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-foreground mb-2" id="modalProductName" data-bind="product.name">Gaming Laptop Pro</h2>
+                            <p class="text-3xl font-bold text-primary" id="modalProductPrice" data-bind="product.price">$2,499</p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-semibold text-foreground mb-2">Description</h3>
+                            <p class="text-muted-foreground" id="modalProductDescription" data-bind="product.description">
+                                High-performance gaming laptop featuring the latest Intel i9 processor, RTX 4080 graphics card, and 32GB of DDR5 RAM. Perfect for gaming, content creation, and professional work.
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-semibold text-foreground mb-2">Specifications</h3>
+                            <div class="space-y-2 text-sm" id="modalProductSpecs" data-bind="product.specifications">
+                                <div class="flex justify-between">
+                                    <span class="text-muted-foreground">Processor:</span>
+                                    <span class="text-foreground">Intel Core i9-13900H</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-muted-foreground">Graphics:</span>
+                                    <span class="text-foreground">NVIDIA RTX 4080</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-muted-foreground">Memory:</span>
+                                    <span class="text-foreground">32GB DDR5</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-muted-foreground">Storage:</span>
+                                    <span class="text-foreground">1TB NVMe SSD</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-muted-foreground">Display:</span>
+                                    <span class="text-foreground">15.6" 165Hz QHD</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-4">
+                            <button class="flex-1 bg-primary text-primary-foreground py-3 px-6 rounded-lg hover:bg-primary/90 transition-colors" 
+                                    id="modalAddToCart" 
+                                    data-event="click:addToCart" 
+                                    data-implementation="Add product to cart and show success feedback">
+                                <i class="fas fa-shopping-cart mr-2"></i>
+                                Add to Cart
+                            </button>
+                            <button class="px-6 py-3 border border-border rounded-lg text-foreground hover:bg-accent transition-colors">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="text-sm text-muted-foreground">
+                            <p><i class="fas fa-truck mr-2"></i>Free shipping on orders over $500</p>
+                            <p><i class="fas fa-undo mr-2"></i>30-day return policy</p>
+                            <p><i class="fas fa-shield-alt mr-2"></i>2-year warranty included</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: ProductDetailModal -->
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
+    <script>
+        (function() {
+            // @STATE: isAdminMode:boolean = false
+            // @STATE: cartItems:array = []
+            // @STATE: cartTotal:number = 0
+            
+            let isAdminMode = false;
+            let cartItems = [];
+            let cartTotal = 0;
+
+            // DOM Elements
+            const adminToggle = document.getElementById('adminToggle');
+            const catalogSection = document.getElementById('catalogSection');
+            const adminSection = document.getElementById('adminSection');
+            const cartToggle = document.getElementById('cartToggle');
+            const cartDrawer = document.getElementById('cartDrawer');
+            const closeCart = document.getElementById('closeCart');
+            const cartCount = document.getElementById('cartCount');
+            const productModal = document.getElementById('productModal');
+            const closeModal = document.getElementById('closeModal');
+            const toastContainer = document.getElementById('toastContainer');
+
+            // Admin Toggle
+            adminToggle.addEventListener('click', function() {
+                isAdminMode = !isAdminMode;
+                if (isAdminMode) {
+                    catalogSection.classList.add('hidden');
+                    adminSection.classList.remove('hidden');
+                    adminToggle.textContent = 'Store View';
+                    adminToggle.classList.add('bg-primary', 'text-primary-foreground');
+                    adminToggle.classList.remove('bg-secondary', 'text-secondary-foreground');
+                } else {
+                    catalogSection.classList.remove('hidden');
+                    adminSection.classList.add('hidden');
+                    adminToggle.textContent = 'Admin View';
+                    adminToggle.classList.remove('bg-primary', 'text-primary-foreground');
+                    adminToggle.classList.add('bg-secondary', 'text-secondary-foreground');
+                }
+            });
+
+            // Cart Toggle
+            cartToggle.addEventListener('click', function() {
+                cartDrawer.classList.add('open');
+            });
+
+            closeCart.addEventListener('click', function() {
+                cartDrawer.classList.remove('open');
+            });
+
+            // Close cart when clicking outside
+            cartDrawer.addEventListener('click', function(e) {
+                if (e.target === cartDrawer) {
+                    cartDrawer.classList.remove('open');
+                }
+            });
+
+            // Admin Tabs
+            const adminTabs = document.querySelectorAll('.admin-tab');
+            const adminTabContents = document.querySelectorAll('.admin-tab-content');
+
+            adminTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const targetTab = this.dataset.tab;
+                    
+                    // Update tab appearance
+                    adminTabs.forEach(t => {
+                        t.classList.remove('border-primary', 'text-primary');
+                        t.classList.add('border-transparent', 'text-muted-foreground');
+                    });
+                    this.classList.add('border-primary', 'text-primary');
+                    this.classList.remove('border-transparent', 'text-muted-foreground');
+                    
+                    // Show/hide content
+                    adminTabContents.forEach(content => {
+                        if (content.id === targetTab + '-tab') {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+
+            // Add to Cart functionality
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('add-to-cart') || e.target.closest('.add-to-cart')) {
+                    const button = e.target.classList.contains('add-to-cart') ? e.target : e.target.closest('.add-to-cart');
+                    const productCard = button.closest('.product-card');
+                    const productName = productCard.querySelector('[data-bind="product.name"]').textContent;
+                    const productPrice = productCard.querySelector('[data-bind="product.price"]').textContent;
+                    const productImage = productCard.querySelector('img').src;
+                    
+                    // TODO: Implement cart state management
+                    addToCart({
+                        id: Date.now(),
+                        name: productName,
+                        price: productPrice,
+                        image: productImage,
+                        quantity: 1
+                    });
+                    
+                    showToast(`${productName} added to cart!`, 'success');
+                }
+            });
+
+            // Product card click to open modal
+            document.addEventListener('click', function(e) {
+                const productCard = e.target.closest('.product-card');
+                if (productCard && !e.target.closest('.add-to-cart')) {
+                    // TODO: Implement product detail modal population
+                    productModal.classList.remove('hidden');
+                }
+            });
+
+            // Close modal
+            closeModal.addEventListener('click', function() {
+                productModal.classList.add('hidden');
+            });
+
+            productModal.addEventListener('click', function(e) {
+                if (e.target === productModal) {
+                    productModal.classList.add('hidden');
+                }
+            });
+
+            // Add to cart function
+            function addToCart(product) {
+                const existingItem = cartItems.find(item => item.id === product.id);
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                } else {
+                    cartItems.push(product);
+                }
+                updateCartUI();
+            }
+
+            // Update cart UI
+            function updateCartUI() {
+                const cartItemsContainer = document.getElementById('cartItems');
+                const emptyCart = document.getElementById('emptyCart');
+                const cartTotalElement = document.getElementById('cartTotal');
+                
+                if (cartItems.length === 0) {
+                    emptyCart.classList.remove('hidden');
+                    cartCount.textContent = '0';
+                    cartTotalElement.textContent = '$0.00';
+                    return;
+                }
+                
+                emptyCart.classList.add('hidden');
+                
+                // TODO: Implement dynamic cart item rendering
+                cartCount.textContent = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+                
+                // Calculate total (simplified for demo)
+                const total = cartItems.reduce((sum, item) => {
+                    const price = parseFloat(item.price.replace('$', ''));
+                    return sum + (price * item.quantity);
+                }, 0);
+                
+                cartTotalElement.textContent = `$${total.toFixed(2)}`;
+            }
+
+            // Toast notification function
+            function showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `bg-card border border-border rounded-lg shadow-lg p-4 max-w-sm transform transition-all duration-300 translate-x-full`;
+                
+                const icon = type === 'success' ? 'fa-check-circle text-green-500' : 'fa-info-circle text-blue-500';
+                
+                toast.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <i class="fas ${icon}"></i>
+                        <span class="text-foreground">${message}</span>
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                // Animate in
+                setTimeout(() => {
+                    toast.classList.remove('translate-x-full');
+                }, 100);
+                
+                // Remove after delay
+                setTimeout(() => {
+                    toast.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        toastContainer.removeChild(toast);
+                    }, 300);
+                }, 3000);
+            }
+
+            // Checkout placeholder
+            document.getElementById('checkoutBtn').addEventListener('click', function() {
+                if (cartItems.length === 0) {
+                    showToast('Your cart is empty!', 'info');
+                    return;
+                }
+                
+                // TODO: Implement actual checkout logic
+                showToast('Checkout is a placeholder for demo purposes!', 'info');
+                cartDrawer.classList.remove('open');
+            });
+
+            // Initialize
+            updateCartUI();
+        })();
+    </script>
+</body>
+</html>
