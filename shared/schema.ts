@@ -11,7 +11,14 @@ const productSchema = new mongoose.Schema({
   specifications: { type: String },
   category: { type: String, required: true, default: 'electronics' }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { 
+    virtuals: true,
+    transform: function(doc, ret) {
+      ret.id = ret._id.toString();
+      return ret;
+    }
+  }
 });
 
 export const Product = mongoose.model('Product', productSchema);
@@ -29,6 +36,7 @@ export const insertProductSchema = z.object({
 
 // Types
 export type ProductDocument = mongoose.Document & {
+  _id: string;
   id: string;
   name: string;
   description: string;
@@ -39,6 +47,4 @@ export type ProductDocument = mongoose.Document & {
   category: string;
 };
 
-
-export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type InsertProduct = z.infer<typeof insertProductSchema>;

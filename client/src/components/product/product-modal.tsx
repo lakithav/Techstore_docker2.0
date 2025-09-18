@@ -97,7 +97,7 @@ export function ProductModal({ product, onClose, onAddToCart }: ProductModalProp
                     {specifications.map((spec, index) => (
                       <div key={index} className="flex justify-between">
                         <span className="text-muted-foreground">{spec.key}:</span>
-                        <span className="text-foreground">{spec.value || spec.key}</span>
+                        <span className="text-foreground">{spec.value}</span>
                       </div>
                     ))}
                   </div>

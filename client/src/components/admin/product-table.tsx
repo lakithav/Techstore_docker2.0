@@ -24,20 +24,29 @@ export function ProductTable({ onShowToast }: ProductTableProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async (productId: string) => {
+      console.log("Deleting product with ID:", productId);
       await apiRequest("DELETE", `/api/products/${productId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       onShowToast("Product deleted successfully", "success");
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Error deleting product:", error);
       onShowToast("Failed to delete product", "error");
     },
   });
 
-  const handleDelete = (productId: string) => {
-    deleteMutation.mutate(productId);
+  const handleDelete = (product: Product) => {
+    // Get the MongoDB document ID
+    const id = product._id || product.id;
+    console.log("Handling delete for product:", product);
+    console.log("Using ID:", id);
+    deleteMutation.mutate(id);
   };
+
+  // Add this inside the component, before the return statement:
+  console.log("Products from API:", products);
 
   if (isLoading) {
     return (
@@ -114,9 +123,11 @@ export function ProductTable({ onShowToast }: ProductTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {products.map(product => (
-              <tr key={product.id} data-testid={`row-product-${product.id}`}>
+            {products.map((product) => (
+              <tr key={product._id || product.id} className="border-b border-border">
                 <td className="px-6 py-4 whitespace-nowrap">
+                  {/* Log individual product for debugging */}
+                  {console.log("Rendering product:", product)}
                   <div className="flex items-center">
                     <div className="h-10 w-10 flex-shrink-0">
                       <img 
@@ -207,7 +218,7 @@ export function ProductTable({ onShowToast }: ProductTableProps) {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleDelete(product.id)}
+                          onClick={() => handleDelete(product)}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
                           Delete

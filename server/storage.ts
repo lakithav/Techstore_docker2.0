@@ -30,8 +30,21 @@ export class MongoStorage {
   }
 
   async deleteProduct(id: string) {
-    const result = await Product.findByIdAndDelete(id);
-    return result !== null;
+    try {
+      console.log("Storage: Deleting product with ID:", id);
+      // Check if ID is valid MongoDB ObjectId
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        console.error("Invalid MongoDB ObjectId:", id);
+        return false;
+      }
+
+      const result = await Product.findByIdAndDelete(id);
+      console.log("Delete result:", result);
+      return result !== null;
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      return false;
+    }
   }
 }
 

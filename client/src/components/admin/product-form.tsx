@@ -16,6 +16,7 @@ interface ProductFormProps {
   onSuccess?: () => void;
 }
 
+// Modify the form schema to handle the price as a string in the form
 const formSchema = insertProductSchema.extend({
   price: insertProductSchema.shape.price,
   stockQuantity: insertProductSchema.shape.stockQuantity,
@@ -29,7 +30,7 @@ export function ProductForm({ product, onShowToast, onSuccess }: ProductFormProp
     defaultValues: {
       name: product?.name || "",
       description: product?.description || "",
-      price: product?.price || "0.00",
+      price: product?.price || 0,
       imageUrl: product?.imageUrl || "",
       stockQuantity: product?.stockQuantity || 0,
       specifications: product?.specifications || "",
@@ -39,7 +40,13 @@ export function ProductForm({ product, onShowToast, onSuccess }: ProductFormProp
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertProduct) => {
-      await apiRequest("POST", "/api/products", data);
+      // Convert price to number before sending to API
+      const formattedData = {
+        ...data,
+        price: Number(data.price),
+        stockQuantity: Number(data.stockQuantity)
+      };
+      await apiRequest("POST", "/api/products", formattedData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
@@ -50,7 +57,8 @@ export function ProductForm({ product, onShowToast, onSuccess }: ProductFormProp
       form.reset();
       onSuccess?.();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Error creating product:", error);
       onShowToast("Failed to create product", "error");
     },
   });
@@ -58,7 +66,17 @@ export function ProductForm({ product, onShowToast, onSuccess }: ProductFormProp
   const updateMutation = useMutation({
     mutationFn: async (data: InsertProduct) => {
       if (!product) return;
-      await apiRequest("PUT", `/api/products/${product.id}`, data);
+      
+      // Convert price to number before sending to API
+      const formattedData = {
+        ...data,
+        price: Number(data.price),
+        stockQuantity: Number(data.stockQuantity)
+      };
+      
+      // Use _id for MongoDB if it exists, otherwise fall back to id
+      const productId = product._id || product.id;
+      await apiRequest("PUT", `/api/products/${productId}`, formattedData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
@@ -68,7 +86,8 @@ export function ProductForm({ product, onShowToast, onSuccess }: ProductFormProp
       );
       onSuccess?.();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Error updating product:", error);
       onShowToast("Failed to update product", "error");
     },
   });
@@ -122,6 +141,8 @@ export function ProductForm({ product, onShowToast, onSuccess }: ProductFormProp
                       step="0.01" 
                       placeholder="0.00" 
                       {...field}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      value={field.value}
                       data-testid="input-product-price"
                     />
                   </FormControl>

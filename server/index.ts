@@ -4,11 +4,17 @@ import path from 'path';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { seedDatabase } from './seed';
-import { MongoMemoryServer } from 'mongodb-memory-server';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Add global variable to store MongoDB URI
+let mongoUri: string;
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -41,21 +47,49 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  let mongoServer;
   try {
     // Use in-memory MongoDB for development
     if (process.env.NODE_ENV === 'development') {
-      mongoServer = await MongoMemoryServer.create();
-      const uri = mongoServer.getUri();
-      console.log('Using in-memory MongoDB server at:', uri);
-      await mongoose.connect(uri);
+      const { MongoMemoryServer } = await import('mongodb-memory-server');
+      const mongoServer = await MongoMemoryServer.create();
+      mongoUri = mongoServer.getUri();
+      console.log('\n🔌 MongoDB Memory Server URL:', mongoUri);
+      console.log('📝 You can use MongoDB Compass with this connection string to view the database\n');
+      
+      await mongoose.connect(mongoUri);
+      console.log('Connected to in-memory MongoDB');
+
+      // Add debug endpoint to get database info
+      app.get('/api/debug/db', async (req, res) => {
+        try {
+          const collections = await mongoose.connection.db.collections();
+          const dbInfo = {
+            uri: mongoUri,
+            collections: await Promise.all(
+              collections.map(async (collection) => ({
+                name: collection.collectionName,
+                count: await collection.countDocuments(),
+                documents: await collection.find({}).toArray()
+              }))
+            )
+          };
+          res.json(dbInfo);
+        } catch (error) {
+          res.status(500).json({ error: 'Failed to get database info' });
+        }
+      });
     } else {
-      // Use real MongoDB in production
-      const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://lakithaviraj21:vMQttqLFNEus7QBf@cluster0.d6ceg45.mongodb.net/?retryWrites=true&w=majority";
+      // Use MongoDB Atlas in production
+      const MONGODB_URI = process.env.MONGODB_URI;
+      
+      if (!MONGODB_URI) {
+        throw new Error('MONGODB_URI is not defined in environment variables');
+      }
+      
+      console.log('Connecting to MongoDB Atlas...');
       await mongoose.connect(MONGODB_URI);
+      console.log('Connected to MongoDB Atlas');
     }
-    
-    console.log('Connected to MongoDB');
 
     // Seed database with sample products
     await seedDatabase();
