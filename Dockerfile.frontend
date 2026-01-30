@@ -1,0 +1,42 @@
+# Frontend Dockerfile
+FROM node:20-alpine AS base
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies
+RUN npm ci && npm cache clean --force
+
+# Copy configuration files
+COPY vite.config.ts ./
+COPY tsconfig.json ./
+COPY tailwind.config.ts ./
+COPY postcss.config.js ./
+COPY components.json ./
+
+# Copy shared schema
+COPY shared ./shared
+
+# Copy client source files
+COPY client ./client
+
+# Build only the frontend (Vite build)
+RUN npx vite build
+
+# Production stage with nginx
+FROM nginx:alpine AS production
+
+# Copy built files to nginx
+COPY --from=base /app/dist/public /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
