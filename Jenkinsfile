@@ -3,15 +3,16 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
-        BACKEND_IMAGE = "lakithaviraj/techstore-backend"
-        FRONTEND_IMAGE = "lakithaviraj/techstore-frontend"
+        BACKEND_IMAGE = "lakithaviraj/techstore_mern-backend"
+        FRONTEND_IMAGE = "lakithaviraj/techstore_mern-frontend"
         TAG = "latest"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                // Replace this with the URL to your git repository
+                git 'https://your-git-repository-url.git'
             }
         }
 
@@ -54,9 +55,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo 'Deploying application...'
-                // This is a placeholder for your deployment steps.
-                // You would typically use kubectl, helm, or another tool to deploy to your cluster.
-                // Example: sh 'kubectl apply -f kubernetes/'
+                
             }
         }
     }
