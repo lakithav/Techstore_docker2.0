@@ -2,11 +2,7 @@ pipeline {
     agent {
         docker {
             image 'docker:latest'
-            args '-v /var/run/docker.sock:/var/run/docker.sock -v /tmp:/tmp'
-            // Run as the root user within the container to have necessary permissions
-            // and set a HOME directory to avoid permission issues with .docker config
-            customWorkspace '/tmp'
-            args '--user root -e HOME=/tmp'
+            args '-v /var/run/docker.sock:/var/run/docker.sock --user root -e HOME=/tmp'
         }
     }
 
