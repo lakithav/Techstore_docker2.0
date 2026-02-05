@@ -1,9 +1,9 @@
 pipeline {
-    agent {
-        docker {
-            image 'docker:latest'
-            args '-v /var/run/docker.sock:/var/run/docker.sock --user root'
-        }
+    agent any
+
+    tools {
+        // Make sure 'docker' is a configured tool in Jenkins Global Tool Configuration
+        tool 'docker'
     }
 
     environment {
