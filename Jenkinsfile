@@ -1,9 +1,13 @@
 pipeline {
-    agent any
-
-    tools {
-        // Make sure 'docker' is a configured tool in Jenkins Global Tool Configuration
-        tool 'docker'
+    agent {
+        docker {
+            image 'docker:latest'
+            args '-v /var/run/docker.sock:/var/run/docker.sock -v /tmp:/tmp'
+            // Run as the root user within the container to have necessary permissions
+            // and set a HOME directory to avoid permission issues with .docker config
+            customWorkspace '/tmp'
+            args '--user root -e HOME=/tmp'
+        }
     }
 
     environment {
