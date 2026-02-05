@@ -19,7 +19,6 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS) {
-                        // Use docker.inside to run build and push commands in a container with correct permissions
                         docker.image('docker:latest').inside('--user root') {
                             // Build Backend
                             sh "docker build -t ${BACKEND_IMAGE}:${TAG} -f Dockerfile.backend ."
