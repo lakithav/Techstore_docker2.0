@@ -1,10 +1,11 @@
 # Jenkins CI/CD Pipeline Setup Guide
 
 ## Prerequisites
+
 ✅ Jenkins installed and running  
 ✅ Docker installed on Jenkins server  
 ✅ DockerHub account (username: lakithaviraj)  
-✅ GitHub repository with your code  
+✅ GitHub repository with your code
 
 ---
 
@@ -27,6 +28,7 @@
    - Click `Create`
 
 ### How to Get DockerHub Access Token (Recommended over password):
+
 1. Login to https://hub.docker.com
 2. Click your profile → Account Settings → Security
 3. Click "New Access Token"
@@ -52,6 +54,7 @@ sudo -u jenkins docker ps
 ```
 
 **For Windows with WSL:**
+
 ```bash
 wsl sudo usermod -aG docker jenkins
 wsl sudo systemctl restart jenkins || wsl sudo service jenkins restart
@@ -68,7 +71,7 @@ wsl sudo systemctl restart jenkins || wsl sudo service jenkins restart
    - Click `OK`
 
 2. **Configure Pipeline**
-   
+
    **General Section:**
    - ✅ Check `GitHub project`
    - Project URL: `https://github.com/lakithav/Techstore_docker2.0/`
@@ -174,12 +177,14 @@ docker push lakithaviraj/techstore-frontend:latest
 After successful pipeline execution:
 
 ### Check Docker Images on DockerHub:
+
 1. Visit: https://hub.docker.com/u/lakithaviraj
 2. You should see:
    - `lakithaviraj/techstore-backend`
    - `lakithaviraj/techstore-frontend`
 
 ### Check Local Deployment:
+
 ```bash
 # Check running containers
 docker compose ps
@@ -195,6 +200,7 @@ curl http://localhost:3000
 ```
 
 ### Access Application:
+
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:5000/api/products
 - **Debug Endpoint**: http://localhost:5000/api/debug/db
@@ -219,6 +225,7 @@ For automatic pipeline triggers when you push code:
    - Click `Add webhook`
 
 **Note**: Jenkins must be accessible from the internet or use ngrok for local Jenkins:
+
 ```bash
 ngrok http 8080
 # Use the ngrok URL in webhook
@@ -229,14 +236,18 @@ ngrok http 8080
 ## Troubleshooting
 
 ### Issue: "docker: command not found" in Jenkins
+
 **Solution**: Ensure Docker is installed and jenkins user has permissions:
+
 ```bash
 sudo usermod -aG docker jenkins
 sudo systemctl restart jenkins
 ```
 
 ### Issue: "Permission denied" when accessing docker.sock
-**Solution**: 
+
+**Solution**:
+
 ```bash
 sudo chmod 666 /var/run/docker.sock
 # OR
@@ -244,18 +255,24 @@ sudo chown jenkins:docker /var/run/docker.sock
 ```
 
 ### Issue: "Credentials not found"
+
 **Solution**: Check the credential ID in Jenkinsfile matches Jenkins:
+
 - Jenkinsfile: `credentials('dockerhub')`
 - Jenkins Credentials ID must be: `dockerhub`
 
 ### Issue: Pipeline fails at "Push to DockerHub"
-**Solution**: 
+
+**Solution**:
+
 1. Verify DockerHub credentials are correct
 2. Manually test: `docker login` on Jenkins server
 3. Check DockerHub repository names match
 
 ### Issue: "Port already in use"
-**Solution**: 
+
+**Solution**:
+
 ```bash
 docker compose down
 docker ps -a  # Check for orphaned containers
@@ -360,6 +377,7 @@ docker compose pull
 ## Support
 
 If you encounter issues:
+
 1. Check Jenkins Console Output for detailed errors
 2. Verify Docker is running: `docker ps`
 3. Check DockerHub credentials are correct
