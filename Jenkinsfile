@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'docker:latest'
+            args '-v /var/run/docker.sock:/var/run/docker.sock --user root'
+        }
+    }
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
@@ -11,8 +16,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Replace this with the URL to your git repository
-                git 'https://your-git-repository-url.git'
+                // Checkout the main branch of the repository
+                git branch: 'main', url: 'https://github.com/lakithav/Techstore_docker2.0.git'
             }
         }
 
