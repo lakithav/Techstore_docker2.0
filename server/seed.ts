@@ -77,8 +77,9 @@ export async function seedDatabase() {
   }
 }
 
-// Self-executing function for the seed script
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+// Self-executing function for the seed script (only when NODE_ENV=seed or running directly)
+// Disable this in production/Docker to prevent MongoMemoryServer initialization
+if (process.env.NODE_ENV === 'seed' && process.argv[1] === fileURLToPath(import.meta.url)) {
   // Special case when running directly as a script
   (async () => {
     try {

@@ -48,8 +48,25 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
-    // Use in-memory MongoDB for development
-    if (process.env.NODE_ENV === 'development') {
+    // Check for MongoDB URI first (production/docker)
+    const MONGODB_URI = process.env.MONGODB_URI;
+    
+    if (MONGODB_URI) {
+      // Use provided MongoDB URI (Docker or Atlas)
+      console.log('Connecting to MongoDB...');
+      mongoUri = MONGODB_URI;
+      await mongoose.connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+      });
+      console.log('Connected to MongoDB successfully');
+      
+      // Verify connection is working
+      const adminDb = mongoose.connection.db.admin();
+      const serverStatus = await adminDb.serverStatus();
+      console.log(`MongoDB version: ${serverStatus.version}, uptime: ${serverStatus.uptime}s`);
+    } else if (process.env.NODE_ENV === 'development') {
+      // Use in-memory MongoDB only for local development
       const { MongoMemoryServer } = await import('mongodb-memory-server');
       const mongoServer = await MongoMemoryServer.create();
       mongoUri = mongoServer.getUri();
@@ -58,38 +75,39 @@ app.use((req, res, next) => {
       
       await mongoose.connect(mongoUri);
       console.log('Connected to in-memory MongoDB');
-
-      // Add debug endpoint to get database info
-      app.get('/api/debug/db', async (req, res) => {
-        try {
-          const collections = await mongoose.connection.db.collections();
-          const dbInfo = {
-            uri: mongoUri,
-            collections: await Promise.all(
-              collections.map(async (collection) => ({
-                name: collection.collectionName,
-                count: await collection.countDocuments(),
-                documents: await collection.find({}).toArray()
-              }))
-            )
-          };
-          res.json(dbInfo);
-        } catch (error) {
-          res.status(500).json({ error: 'Failed to get database info' });
-        }
-      });
     } else {
-      // Use MongoDB Atlas in production
-      const MONGODB_URI = process.env.MONGODB_URI;
-      
-      if (!MONGODB_URI) {
-        throw new Error('MONGODB_URI is not defined in environment variables');
-      }
-      
-      console.log('Connecting to MongoDB Atlas...');
-      await mongoose.connect(MONGODB_URI);
-      console.log('Connected to MongoDB Atlas');
+      throw new Error('MONGODB_URI is not defined in environment variables');
     }
+
+    // Add debug endpoint to get database info
+    app.get('/api/debug/db', async (req, res) => {
+      try {
+        console.log('Debug endpoint called, checking connection state:', mongoose.connection.readyState);
+        
+        if (mongoose.connection.readyState !== 1) {
+          return res.status(503).json({ error: 'Database not connected', state: mongoose.connection.readyState });
+        }
+        
+        const collections = await mongoose.connection.db.collections();
+        console.log(`Found ${collections.length} collections`);
+        
+        const dbInfo = {
+          uri: mongoUri ? mongoUri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@') : 'N/A', // Hide credentials
+          connectionState: mongoose.connection.readyState,
+          collections: await Promise.all(
+            collections.map(async (collection) => ({
+              name: collection.collectionName,
+              count: await collection.countDocuments(),
+              documents: await collection.find({}).limit(10).toArray()
+            }))
+          )
+        };
+        res.json(dbInfo);
+      } catch (error) {
+        console.error('Debug endpoint error:', error);
+        res.status(500).json({ error: 'Failed to get database info', details: error instanceof Error ? error.message : String(error) });
+      }
+    });
 
     // Seed database with sample products
     await seedDatabase();
@@ -109,16 +127,18 @@ app.use((req, res, next) => {
     // doesn't interfere with the other routes
     if (app.get("env") === "development") {
       await setupVite(app, server);
-    } else {
+    } else if (process.env.SERVE_STATIC === 'true') {
+      // Only serve static files if explicitly enabled (not in Docker)
       serveStatic(app);
     }
+    // In Docker, the frontend is served by a separate nginx container
 
     // ALWAYS serve the app on the port specified in the environment variable PORT
     // Other ports are firewalled. Default to 5000 if not specified.
     // this serves both the API and the client.
     // It is the only port that is not firewalled.
     const port = parseInt(process.env.PORT || '5000', 10);
-    server.listen(port, 'localhost', () => {
+    server.listen(port, '0.0.0.0', () => {
       log(`serving on port ${port}`);
     });
   } catch (error) {
