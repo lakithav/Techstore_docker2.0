@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'docker:latest'
-            args '-v /var/run/docker.sock:/var/run/docker.sock --user root -e HOME=/tmp'
-        }
-    }
+    agent any
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
@@ -16,42 +11,28 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the main branch of the repository
                 git branch: 'main', url: 'https://github.com/lakithav/Techstore_docker2.0.git'
             }
         }
 
-        stage('Build Backend') {
-            steps {
-                script {
-                    docker.build(BACKEND_IMAGE, "-f Dockerfile.backend .")
-                }
-            }
-        }
-
-        stage('Build Frontend') {
-            steps {
-                script {
-                    docker.build(FRONTEND_IMAGE, "-f Dockerfile.frontend .")
-                }
-            }
-        }
-
-        stage('Push Backend Image') {
+        stage('Build and Push Images') {
             steps {
                 script {
                     docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS) {
-                        docker.image(BACKEND_IMAGE).push(TAG)
-                    }
-                }
-            }
-        }
+                        // Use docker.inside to run build and push commands in a container with correct permissions
+                        docker.image('docker:latest').inside('--user root') {
+                            // Build Backend
+                            sh "docker build -t ${BACKEND_IMAGE}:${TAG} -f Dockerfile.backend ."
+                            
+                            // Push Backend
+                            sh "docker push ${BACKEND_IMAGE}:${TAG}"
 
-        stage('Push Frontend Image') {
-            steps {
-                script {
-                    docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS) {
-                        docker.image(FRONTEND_IMAGE).push(TAG)
+                            // Build Frontend
+                            sh "docker build -t ${FRONTEND_IMAGE}:${TAG} -f Dockerfile.frontend ."
+
+                            // Push Frontend
+                            sh "docker push ${FRONTEND_IMAGE}:${TAG}"
+                        }
                     }
                 }
             }
@@ -60,7 +41,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo 'Deploying application...'
-                
+                // Your deployment steps will go here
             }
         }
     }
