@@ -87,8 +87,13 @@ pipeline {
             steps {
                 script {
                     echo 'Deploying application with Docker Compose...'
-                    // Stop existing containers
-                    sh 'docker compose down || true'
+                    
+                    // Stop and remove existing containers forcefully
+                    sh '''
+                        docker compose down || true
+                        docker rm -f techstore-mongodb techstore-backend techstore-frontend || true
+                        docker network rm techstore-docker-pipeline_techstore-network || true
+                    '''
                     
                     // Pull latest images from DockerHub
                     sh """
@@ -100,10 +105,13 @@ pipeline {
                     sh 'docker compose up -d'
                     
                     // Wait for services to be healthy
-                    sleep(time: 10, unit: 'SECONDS')
+                    sleep(time: 15, unit: 'SECONDS')
                     
                     // Check container status
                     sh 'docker compose ps'
+                    
+                    // Show logs for verification
+                    sh 'docker compose logs --tail=50'
                 }
             }
         }
