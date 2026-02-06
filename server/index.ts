@@ -55,16 +55,38 @@ app.use((req, res, next) => {
       // Use provided MongoDB URI (Docker or Atlas)
       console.log('Connecting to MongoDB...');
       mongoUri = MONGODB_URI;
+      
+      // Configure mongoose with better connection settings
+      mongoose.set('strictQuery', false);
+      
       await mongoose.connect(MONGODB_URI, {
-        serverSelectionTimeoutMS: 5000,
-        socketTimeoutMS: 45000,
+        serverSelectionTimeoutMS: 30000,
+        socketTimeoutMS: 0, // Disable socket timeout
+        connectTimeoutMS: 30000,
+        maxPoolSize: 10,
+        minPoolSize: 2,
       });
+      
       console.log('Connected to MongoDB successfully');
       
       // Verify connection is working
       const adminDb = mongoose.connection.db.admin();
       const serverStatus = await adminDb.serverStatus();
       console.log(`MongoDB version: ${serverStatus.version}, uptime: ${serverStatus.uptime}s`);
+      
+      // Handle connection events
+      mongoose.connection.on('disconnected', () => {
+        console.log('MongoDB disconnected! Attempting to reconnect...');
+      });
+      
+      mongoose.connection.on('reconnected', () => {
+        console.log('MongoDB reconnected!');
+      });
+      
+      mongoose.connection.on('error', (err) => {
+        console.error('MongoDB connection error:', err);
+      });
+      
     } else if (process.env.NODE_ENV === 'development') {
       // Use in-memory MongoDB only for local development
       const { MongoMemoryServer } = await import('mongodb-memory-server');
