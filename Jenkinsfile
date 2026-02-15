@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        // DockerHub credentials (configured in Jenkins)
+        // DockerHub credentials (configured in Jenkins)d
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
         DOCKERHUB_USERNAME = 'lakithaviraj'
         BACKEND_IMAGE = "${DOCKERHUB_USERNAME}/techstore-backend"

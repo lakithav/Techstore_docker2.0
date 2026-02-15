@@ -16,7 +16,7 @@ export function Header({ isAdminMode, onToggleAdmin, cartItemCount, onOpenCart }
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <Cpu className="text-primary text-2xl h-8 w-8" />
-            <h1 className="text-xl font-bold text-foreground">TechStore V2.0</h1>
+            <h1 className="text-xl font-bold text-foreground">TechStore New Version </h1>
           </div>
           
           {/* Navigation */}
