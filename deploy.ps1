@@ -18,7 +18,8 @@ function Check-Prerequisites {
     try {
         $tfVersion = terraform version -json | ConvertFrom-Json
         Write-Host "[OK] Terraform installed: $($tfVersion.terraform_version)" -ForegroundColor Green
-    } catch {
+    }
+    catch {
         Write-Host "[ERROR] Terraform is not installed" -ForegroundColor Red
         Write-Host "Install from: https://www.terraform.io/downloads"
         exit 1
@@ -28,7 +29,8 @@ function Check-Prerequisites {
     try {
         aws --version | Out-Null
         Write-Host "[OK] AWS CLI installed" -ForegroundColor Green
-    } catch {
+    }
+    catch {
         Write-Host "[WARNING] AWS CLI is not installed" -ForegroundColor Yellow
         Write-Host "Install from: https://aws.amazon.com/cli/"
     }
@@ -37,7 +39,8 @@ function Check-Prerequisites {
     $sshKeyPath = Join-Path $env:USERPROFILE ".ssh\techstore-key.pub"
     if (Test-Path $sshKeyPath) {
         Write-Host "[OK] SSH key found" -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-Host "[WARNING] SSH public key not found at $sshKeyPath" -ForegroundColor Yellow
         Write-Host "Generate with: ssh-keygen -t rsa -b 4096 -f ~/.ssh/techstore-key -N `"`""
     }
@@ -71,7 +74,8 @@ function Deploy-Infrastructure {
         Write-Host "Application URLs:" -ForegroundColor Blue
         terraform output
         
-    } finally {
+    }
+    finally {
         Pop-Location
     }
 }
@@ -91,7 +95,8 @@ function Destroy-Infrastructure {
     try {
         terraform destroy
         Write-Host "Resources destroyed." -ForegroundColor Green
-    } finally {
+    }
+    finally {
         Pop-Location
     }
 }
@@ -103,7 +108,8 @@ function Show-Status {
     try {
         Write-Host "Current infrastructure:" -ForegroundColor Blue
         terraform show
-    } finally {
+    }
+    finally {
         Pop-Location
     }
 }
@@ -115,7 +121,8 @@ function Show-Outputs {
     try {
         Write-Host "Deployment outputs:" -ForegroundColor Blue
         terraform output
-    } finally {
+    }
+    finally {
         Pop-Location
     }
 }
@@ -136,7 +143,8 @@ function Connect-SSH {
         $sshKeyPath = Join-Path $env:USERPROFILE ".ssh\techstore-key"
         ssh -i $sshKeyPath ubuntu@$IP
         
-    } finally {
+    }
+    finally {
         Pop-Location
     }
 }
