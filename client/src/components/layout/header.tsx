@@ -21,7 +21,7 @@ export function Header({ isAdminMode, onToggleAdmin, cartItemCount, onOpenCart }
           
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#" className="text-foreground hover:text-primary transition-colors">Products</a>
+            <a href="#" className="text-foreground hover:text-primary transition-colors">Products new </a>
             <a href="#" className="text-foreground hover:text-primary transition-colors">About</a>
             <a href="#" className="text-foreground hover:text-primary transition-colors">Contact</a>
           </nav>
