@@ -78,7 +78,7 @@ export function ProductGrid({ onAddToCart, onShowToast }: ProductGridProps) {
           {/* Header */}
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-foreground mb-2" data-testid="text-catalog-title">
-              Featured Products today
+              LAKITHA VIRAJ
             </h2>
             <p className="text-muted-foreground" data-testid="text-catalog-subtitle">
               Discover the latest in technology and electronics
