@@ -5,3 +5,22 @@ server/public
 vite.config.ts.*
 *.tar.gz
 .env
+
+# Terraform
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/*.tfvars
+!**/*.tfvars.example
+**/.terraformrc
+**/terraform.rc
+**/crash.log
+**/crash.*.log
+**/*.tfplan
+
+# SSH Keys
+**/*.pem
+**/*.ppk
+**/.ssh/techstore-key
+**/.ssh/techstore-key.pub

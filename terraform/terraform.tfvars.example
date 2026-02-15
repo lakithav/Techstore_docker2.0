@@ -1,0 +1,18 @@
+# Example: Custom variable values
+# Copy this file to terraform.tfvars and modify as needed
+# cp terraform.tfvars.example terraform.tfvars
+
+# AWS Region
+# aws_region = "us-east-1"
+
+# EC2 Instance Type
+# instance_type = "t2.medium"  # t2.micro for free tier (slower)
+
+# SSH Key Name
+# key_name = "techstore-key"
+
+# Path to your SSH public key
+# public_key_path = "~/.ssh/techstore-key.pub"
+
+# DockerHub Username
+# docker_username = "lakithaviraj"
